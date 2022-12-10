@@ -22,7 +22,7 @@ int main()
     // ftok to generate unique key
     key_t key = ftok("shmfile",65);
 //msqid = msgget(ftok("/tmp", 'A'), (IPC_CREAT | IPC_EXCL | 0400));
-
+  
     // shmget returns an identifier in shmid
     // shmget used to create the shared memory segment
     int shmid = shmget(key,1024,0666|IPC_CREAT);
@@ -36,9 +36,9 @@ int main()
     strcpy((char *)shared_memory,buff); //data written to shared memory
     cout<<"You wrote: "<<(char *)shared_memory<<endl;
     //printf("You wrote : %s\n",(char *)shared_memory);
-
-    //detach from shared memory
-    //shmdt(str);
-
+      
+    //detach from shared memory 
+    shmdt(shared_memory);
+  
     return 0;
 }
