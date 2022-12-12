@@ -1,74 +1,103 @@
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
 #include <stdio.h>
-#include<stdlib.h>
-#include<unistd.h>
-#include<string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/shm.h>
+#include <sys/sem.h>
+#include <sys/ipc.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <string.h>
+#include <signal.h>
 #include <iostream>
-#include <sstream>
-#include <string>
-using namespace std;
-
-struct buff{
-string name;
-float priceMean;
-float standardDev;
-int sleepInterval;
+#include <random>
+using namespace std; 
+struct consumer{
+	char name[10];//1 byte
+	double price;//8 byte
+	int index;//4yte	 
 };
+union semun{
+	int val;
+	struct semid_ds *buf;
+	unsigned short int *array;
+	struct seminfo *__buf;
+};
+/*struct compare{
+	bool operator()(process const& p1,process const& p2){
+	
+	if(p1.remainingtime==p2.remainingtime)
+	return  p1.arrivaltime > p2.arrivaltime;
+	else
+	return p1.remainingtime>p2.remainingtime;
+	} 
 
-int main()
-{
-  int i;
-  void *shared_memory;
-  char buff[100];
-    // ftok to generate unique key
-    key_t key = ftok("shmfile",65);
+};*/
+char name1[10];
+double price;
+#define size 2
+int r,i=0;
+int main(){
+	struct sembuf sem_buf;
+	union semun sem_val;
+	//priority_queue<struct process,vector <process>,compare> temp3;
+	key_t key0=ftok("test",10);
+	key_t key1=ftok("test",11);
+	key_t key2=ftok("test",12);
+	key_t key3=ftok("test",13);
+	int semid0=semget(key0,1,IPC_CREAT | IPC_EXCL |0666); //s
+	int semid1=semget(key1,1,IPC_CREAT | IPC_EXCL |0666); //n
+	int semid2=semget(key2,1,IPC_CREAT | IPC_EXCL |0666); //e
+	if(semid0>=0 and semid1>=0 and semid2>=0){
+	sem_val.val=1;
+	int x0=semctl(semid0,0,SETVAL,sem_val);
+	sem_val.val=0;
+	x0=semctl(semid1,0,SETVAL,sem_val);
+	sem_val.val=size;
+	x0=semctl(semid2,0,SETVAL,sem_val);
+	}else{
+	if(semid0==-1 and errno==EEXIST ){
+		semid0=semget(key0,1,0); 	
+	}
+	if(semid1==-1 and errno==EEXIST ){
+		semid1=semget(key1,1,0); 	
+	}
+	if(semid2==-1 and errno==EEXIST ){
+		semid2=semget(key2,1,0); 	
+	}
+	}
+	int shmid =shmget(key3,size,0666 | IPC_CREAT);
+	consumer *buffer=(consumer *)shmat(shmid,0,0);
+	//buffer[size];
+	while(true){
+		sem_buf.sem_op=-1;	//wait for n 
+		sem_buf.sem_num=0;
+		sem_buf.sem_flg=SEM_UNDO;
+		r= semop(semid1,&sem_buf,1);
+		sem_buf.sem_op=-1;	//wait for s
+		sem_buf.sem_num=0;
+		sem_buf.sem_flg=SEM_UNDO;
+		r=semop(semid0,&sem_buf,1);
+		//cs..
+		strcpy(name1,buffer[i].name);
+		price=buffer[i].price;
+		i=(i+1)%size;
+		//cout<<buffer->index<<endl;
+		//buffer->index=(buffer->index+1)%size;
+		cout<<name1<<" "<<price<<endl;
+		//..
+		sem_buf.sem_op=1;	//signal for s
+		sem_buf.sem_num=0;
+		sem_buf.sem_flg=SEM_UNDO;
+		r=semop(semid0,&sem_buf,1);
+		sem_buf.sem_op=1;	//signal for e
+		sem_buf.sem_num=0;
+		sem_buf.sem_flg=SEM_UNDO;
+		r=semop(semid2,&sem_buf,1);
+		
+	}
 
-    // shmget returns an identifier in shmid
-    // shmget used to create the shared memory segment
-    int shmid = shmget(key,1024,0666|IPC_CREAT);
-    cout<<"Key of shared memory is "<<shmid<<endl;
-
-    // shmat to attach the shared segment with the address space of the process
-    shared_memory=shmat(shmid,NULL,0);
-    cout<<"Process attached at "<<shared_memory<<endl;
-    struct buff b;
-    char* buf = (char *)shared_memory;
-    stringstream ss(buf); //used for tokenization
-    int k = 0;
-    while (ss.good()){
-      string substr;
-      getline(ss, substr, ' ');
-      if (k == 0){
-        b.name = substr;
-        k++;
-      }
-      else if (k == 1){
-        b.priceMean = stof(substr);
-        k++;
-      }
-      else if (k == 2){
-        b.standardDev = stof(substr);
-        k++;
-      }
-      else if (k == 3){
-        b.sleepInterval = stoi(substr);
-        k++;
-      }
-    }
-
-  cout<<"commodity name: "<<b.name<<endl;
-  cout<<"commodity mean: "<<b.priceMean<<endl;
-  cout<<"commodity stnddev "<<b.standardDev<<endl;
-  cout<<"sleep interval: "<<b.sleepInterval<<endl;
-
-
-
-   // printf("Data read from shared memory is : %s\n",(char *)shared_memory);
-
-    //detach from shared memory
-    shmdt(shared_memory);
-
-    return 0;
 }
