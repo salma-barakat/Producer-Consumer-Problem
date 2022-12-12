@@ -14,6 +14,7 @@
 #include <signal.h>
 #include <iostream>
 #include <random>
+#include <vector>
 
 using namespace std; 
 struct consumer{
@@ -81,7 +82,7 @@ int main(){
   
 	consumer *buffer=(consumer *)shmat(shmid,0,0);
   ///////////////////////////////////////////////////////////***************
-  consumer bufPrint[40];
+  vector<vector<struct consumer>> v;
 
   int al = 0;
   int gold = 0;
@@ -103,26 +104,38 @@ int main(){
 		//buffer->index=(buffer->index+1)%size;
 		cout<<name1<<" "<<price<<endl;
     ///////////////////////////////////////////////*************************
+    /*
     if(strcmp(name1, "aluminium") == 0){
-      bufPrint[0+al] = buffer[i];
-      for(int i=0; i<al; i++){
-        bufPrint[0+al].avgPrice += bufPrint[0+i].price;
+      cout<<"line 108"<<endl;
+      if(al == 4){
+        cout<<"line 110"<<endl;
+        v[0].erase(v[0].begin());
+        al --;
       }
-      bufPrint[0+al].avgPrice /= al + 1;
 
-      if(al<=2)
-        al++;
+      cout<<"line 113"<<endl;
+      
+      v[0].push_back(buffer[i]);
+      // v[0][.emplace_back](buffer[i]);
+      cout<<"line 115"<<endl;
+      for(int i=0; i<al; i++){
+        cout<<"line 117"<<endl;
+        v[0][al].avgPrice += v[0][i].price;
+        cout<<"line 119"<<endl;
+      }
+      v[0][al].avgPrice /= (al + 1);
+      al++;
     }
-    else if (strcmp(name1,"gold") == 0){
-      bufPrint[1+gold] = buffer[i];
-      gold ++;
-    }
+    // else if (strcmp(name1,"gold") == 0){
+    //   bufPrint[1+gold] = buffer[i];
+    //   gold ++;
+    // }
 
     cout<<"+-------------------------------------+"<<endl;
     cout<<"| Currency | Price | AvgPrice |"<<endl;
     cout<<"+-------------------------------------+"<<endl;
-    cout<<"| Currency | Price | AvgPrice |"<<endl;
-
+    cout<<"| "<<v[0][al].name <<"| "<<v[0][al].price <<"| "<<v[0][al].avgPrice<<" |"<<endl;
+*/
 		//..
 		sem_buf.sem_op=1;	//signal for s
 		sem_buf.sem_num=0;
