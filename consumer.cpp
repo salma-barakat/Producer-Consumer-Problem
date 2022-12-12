@@ -20,8 +20,8 @@ using namespace std;
 struct consumer{
 	char name[10];//1 byte
 	double price;//8 byte
-  double avgPrice; //8 byte
 	int index;//4yte	 
+	double avgPrice; //8 byte
 };
 
 bool compare( struct consumer a, struct consumer b){
@@ -82,8 +82,8 @@ int main(){
   
 	consumer *buffer=(consumer *)shmat(shmid,0,0);
   ///////////////////////////////////////////////////////////***************
-  vector<vector<struct consumer>> v;
-
+ // vector<vector<struct consumer>> v;
+	vector<struct consumer> alumin;
   int al = 0;
   int gold = 0;
 	//buffer[size];
@@ -103,7 +103,20 @@ int main(){
 		//cout<<buffer->index<<endl;
 		//buffer->index=(buffer->index+1)%size;
 		cout<<name1<<" "<<price<<endl;
-    ///////////////////////////////////////////////*************************
+
+
+		//..
+		sem_buf.sem_op=1;	//signal for s
+		sem_buf.sem_num=0;
+		sem_buf.sem_flg=SEM_UNDO;
+		r=semop(semid0,&sem_buf,1);
+		sem_buf.sem_op=1;	//signal for e
+		sem_buf.sem_num=0;
+		sem_buf.sem_flg=SEM_UNDO;
+		r=semop(semid2,&sem_buf,1);
+
+
+		   ///////////////////////////////////////////////*************************
     /*
     if(strcmp(name1, "aluminium") == 0){
       cout<<"line 108"<<endl;
@@ -111,8 +124,24 @@ int main(){
         cout<<"line 110"<<endl;
         v[0].erase(v[0].begin());
         al --;
+      }*/
+	  if(strcmp(name1, "aluminium") == 0){
+      cout<<"line 116"<<endl;
+      if(al == 4){
+        cout<<"line 118"<<endl;
+		alumin.erase(alumin.begin());
+        al --;
       }
-
+	  alumin.push_back(buffer[i]);
+	  for(int i=0; i<=al; i++){
+        cout<<"line 124"<<endl;
+        alumin[al].avgPrice += alumin[i].price;
+        cout<<"line 126"<<endl;
+      }
+      alumin[al].avgPrice /= (al + 1);
+      al++;
+	  }
+/*
       cout<<"line 113"<<endl;
       
       v[0].push_back(buffer[i]);
@@ -129,22 +158,12 @@ int main(){
     // else if (strcmp(name1,"gold") == 0){
     //   bufPrint[1+gold] = buffer[i];
     //   gold ++;
-    // }
+    // }*/
 
     cout<<"+-------------------------------------+"<<endl;
     cout<<"| Currency | Price | AvgPrice |"<<endl;
     cout<<"+-------------------------------------+"<<endl;
-    cout<<"| "<<v[0][al].name <<"| "<<v[0][al].price <<"| "<<v[0][al].avgPrice<<" |"<<endl;
-*/
-		//..
-		sem_buf.sem_op=1;	//signal for s
-		sem_buf.sem_num=0;
-		sem_buf.sem_flg=SEM_UNDO;
-		r=semop(semid0,&sem_buf,1);
-		sem_buf.sem_op=1;	//signal for e
-		sem_buf.sem_num=0;
-		sem_buf.sem_flg=SEM_UNDO;
-		r=semop(semid2,&sem_buf,1);
+    cout<<"| "<<alumin[al].name <<"| "<<alumin[al].price <<"| "<<alumin[al].avgPrice<<" |"<<endl;
 		
 	}
 
