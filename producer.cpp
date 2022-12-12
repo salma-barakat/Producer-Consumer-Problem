@@ -14,6 +14,8 @@
 #include <signal.h>
 #include <iostream>
 #include <random>
+#include <chrono>
+#include <iomanip>
 using namespace std; 
 
 struct producer{
@@ -27,7 +29,7 @@ union semun{
 	unsigned short int *array;
 	struct seminfo *__buf;
 };
-#define size 2
+#define size 5
 int intervalsec,r;
 double mean,deviation,pricee;
 char name[10];
@@ -54,6 +56,18 @@ int main(int argc,char *argv[]){
 	//sem_val.val=size;
 	//x0=semctl(semid2,0,SETVAL,sem_val);
 	int shmid =shmget(key3,size,0666|IPC_CREAT);
+    //generating a new value:
+    auto now = std::chrono::high_resolution_clock::now();
+    auto time = std::chrono::system_clock::to_time_t(now);
+    auto tm = *std::gmtime(&time);
+    auto epoch = now.time_since_epoch();
+    auto us = std::chrono::duration_cast<std::chrono::microseconds>(epoch).count() % 1000000;
+
+    cout << std::put_time(&tm, "%F %T.") << us << std::put_time(&tm, " %Z") << name<<
+    "Generating a new value "<<shmid<<endl;
+
+
+
 	producer *buffer=(producer *)shmat(shmid,0,0);
 	//buffer[size];
 	if(semid0==-1 and errno==EEXIST ){
@@ -98,6 +112,14 @@ int main(int argc,char *argv[]){
 		sem_buf.sem_flg=SEM_UNDO;
 		r=semop(semid1,&sem_buf,1);
 		cout<<"....."<<endl;
+        auto now = std::chrono::high_resolution_clock::now();
+        auto time = std::chrono::system_clock::to_time_t(now);
+        auto tm = *std::gmtime(&time);
+        auto epoch = now.time_since_epoch();
+        auto us = std::chrono::duration_cast<std::chrono::microseconds>(epoch).count() % 1000000;
+
+        cout << std::put_time(&tm, "%F %T.") << us << std::put_time(&tm, " %Z") <<
+        "Sleeping for "<<intervalsec <<" ms"<<endl;
 		sleep(intervalsec/1000);
 	}
 	return 0;

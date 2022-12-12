@@ -14,12 +14,21 @@
 #include <signal.h>
 #include <iostream>
 #include <random>
+
 using namespace std; 
 struct consumer{
 	char name[10];//1 byte
 	double price;//8 byte
+  double avgPrice; //8 byte
 	int index;//4yte	 
 };
+
+bool compare( struct consumer a, struct consumer b){
+	if(a.name < b.name)
+		return 1;
+	else 
+		return 0;
+}
 union semun{
 	int val;
 	struct semid_ds *buf;
@@ -34,11 +43,10 @@ union semun{
 	else
 	return p1.remainingtime>p2.remainingtime;
 	} 
-
 };*/
 char name1[10];
 double price;
-#define size 2
+#define size 5
 int r,i=0;
 int main(){
 	struct sembuf sem_buf;
@@ -70,7 +78,13 @@ int main(){
 	}
 	}
 	int shmid =shmget(key3,size,0666 | IPC_CREAT);
+  
 	consumer *buffer=(consumer *)shmat(shmid,0,0);
+  ///////////////////////////////////////////////////////////***************
+  consumer bufPrint[40];
+
+  int al = 0;
+  int gold = 0;
 	//buffer[size];
 	while(true){
 		sem_buf.sem_op=-1;	//wait for n 
@@ -88,6 +102,27 @@ int main(){
 		//cout<<buffer->index<<endl;
 		//buffer->index=(buffer->index+1)%size;
 		cout<<name1<<" "<<price<<endl;
+    ///////////////////////////////////////////////*************************
+    if(strcmp(name1, "aluminium") == 0){
+      bufPrint[0+al] = buffer[i];
+      for(int i=0; i<al; i++){
+        bufPrint[0+al].avgPrice += bufPrint[0+i].price;
+      }
+      bufPrint[0+al].avgPrice /= al + 1;
+
+      if(al<=2)
+        al++;
+    }
+    else if (strcmp(name1,"gold") == 0){
+      bufPrint[1+gold] = buffer[i];
+      gold ++;
+    }
+
+    cout<<"+-------------------------------------+"<<endl;
+    cout<<"| Currency | Price | AvgPrice |"<<endl;
+    cout<<"+-------------------------------------+"<<endl;
+    cout<<"| Currency | Price | AvgPrice |"<<endl;
+
 		//..
 		sem_buf.sem_op=1;	//signal for s
 		sem_buf.sem_num=0;
