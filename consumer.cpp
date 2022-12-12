@@ -104,7 +104,7 @@ int main(){
 		//buffer->index=(buffer->index+1)%size;
 		cout<<name1<<" "<<price<<endl;
 
-
+		alumin.push_back(buffer[i]);
 		//..
 		sem_buf.sem_op=1;	//signal for s
 		sem_buf.sem_num=0;
@@ -132,7 +132,7 @@ int main(){
 		alumin.erase(alumin.begin());
         al --;
       }
-	  alumin.push_back(buffer[i]);
+	
 	  for(int i=0; i<=al; i++){
         cout<<"line 124"<<endl;
         alumin[al].avgPrice += alumin[i].price;
