@@ -14,22 +14,13 @@
 #include <signal.h>
 #include <iostream>
 #include <random>
-#include <vector>
-
 using namespace std; 
 struct consumer{
 	char name[10];//1 byte
 	double price;//8 byte
-	int index;//4yte	 
-	double avgPrice; //8 byte
+	int index;//4yte	
+	double avgPrice = 0; //8 byte 
 };
-
-bool compare( struct consumer a, struct consumer b){
-	if(a.name < b.name)
-		return 1;
-	else 
-		return 0;
-}
 union semun{
 	int val;
 	struct semid_ds *buf;
@@ -79,13 +70,12 @@ int main(){
 	}
 	}
 	int shmid =shmget(key3,size,0666 | IPC_CREAT);
-  
 	consumer *buffer=(consumer *)shmat(shmid,0,0);
-  ///////////////////////////////////////////////////////////***************
- // vector<vector<struct consumer>> v;
 	vector<struct consumer> alumin;
-  int al = 0;
-  int gold = 0;
+	consumer c;
+	int al = 0;
+	int less4 = 1;
+	char arrow;
 	//buffer[size];
 	while(true){
 		sem_buf.sem_op=-1;	//wait for n 
@@ -97,14 +87,16 @@ int main(){
 		sem_buf.sem_flg=SEM_UNDO;
 		r=semop(semid0,&sem_buf,1);
 		//cs..
-		strcpy(name1,buffer[i].name);
-		price=buffer[i].price;
+		strcpy(c.name,buffer[i].name);
+		c.price=buffer[i].price;
+		alumin.push_back(c);
 		i=(i+1)%size;
 		//cout<<buffer->index<<endl;
 		//buffer->index=(buffer->index+1)%size;
-		cout<<name1<<" "<<price<<endl;
+		cout<<alumin[al].name<<" "<<alumin[al].price<<endl;
+		//al++;
 
-		alumin.push_back(buffer[i]);
+	 
 		//..
 		sem_buf.sem_op=1;	//signal for s
 		sem_buf.sem_num=0;
@@ -115,55 +107,38 @@ int main(){
 		sem_buf.sem_flg=SEM_UNDO;
 		r=semop(semid2,&sem_buf,1);
 
+		if(strcmp(c.name, "aluminium") == 0){
+      	cout<<"line 116"<<endl;
+		if(al == 4){
+			cout<<"line 118"<<endl;
+			alumin.erase(alumin.begin());
+			al --;
+		}
+		if(al == 3)
+			less4 = 0;
+		if(!less4){
+			for(int i=0; i<=al; i++){
+			cout<<"line 124"<<endl;
+			alumin[al].avgPrice += alumin[i].price;
+			cout<<"line 126"<<endl;
+			}
+		alumin[al].avgPrice /= (al + 1);
+		}
+		// if(al != 0){
+		// 	if(alumin[al].price > alumin[al-1].price)
+		// 		arrow = ''
+		// }
+		
+		cout<<"success"<<endl;
 
-		   ///////////////////////////////////////////////*************************
-    /*
-    if(strcmp(name1, "aluminium") == 0){
-      cout<<"line 108"<<endl;
-      if(al == 4){
-        cout<<"line 110"<<endl;
-        v[0].erase(v[0].begin());
-        al --;
-      }*/
-	  if(strcmp(name1, "aluminium") == 0){
-      cout<<"line 116"<<endl;
-      if(al == 4){
-        cout<<"line 118"<<endl;
-		alumin.erase(alumin.begin());
-        al --;
-      }
-	
-	  for(int i=0; i<=al; i++){
-        cout<<"line 124"<<endl;
-        alumin[al].avgPrice += alumin[i].price;
-        cout<<"line 126"<<endl;
-      }
-      alumin[al].avgPrice /= (al + 1);
-      al++;
+		cout<<"+-------------------------------------+"<<endl;
+		cout<<"| Currency | Price | AvgPrice |"<<endl;
+		cout<<"+-------------------------------------+"<<endl;
+		cout<<"| "<<alumin[al].name <<"| "<<alumin[al].price <<"| "<<alumin[al].avgPrice<<" |"<<endl;
+		al++;
 	  }
-/*
-      cout<<"line 113"<<endl;
-      
-      v[0].push_back(buffer[i]);
-      // v[0][.emplace_back](buffer[i]);
-      cout<<"line 115"<<endl;
-      for(int i=0; i<al; i++){
-        cout<<"line 117"<<endl;
-        v[0][al].avgPrice += v[0][i].price;
-        cout<<"line 119"<<endl;
-      }
-      v[0][al].avgPrice /= (al + 1);
-      al++;
-    }
-    // else if (strcmp(name1,"gold") == 0){
-    //   bufPrint[1+gold] = buffer[i];
-    //   gold ++;
-    // }*/
 
-    cout<<"+-------------------------------------+"<<endl;
-    cout<<"| Currency | Price | AvgPrice |"<<endl;
-    cout<<"+-------------------------------------+"<<endl;
-    cout<<"| "<<alumin[al].name <<"| "<<alumin[al].price <<"| "<<alumin[al].avgPrice<<" |"<<endl;
+		 
 		
 	}
 
