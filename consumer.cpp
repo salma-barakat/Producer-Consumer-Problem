@@ -76,6 +76,17 @@ int main(){
 	consumer *buffer=(consumer *)shmat(shmid,0,0);
 	//vector<struct consumer> commodities;
 	struct consumer commodities[11];
+	strcpy(commodities[0].name,"aluminium");
+	strcpy(commodities[1].name,"copper");
+	strcpy(commodities[2].name,"cotton");
+	strcpy(commodities[3].name,"crudeoil");
+	strcpy(commodities[4].name,"gold");
+	strcpy(commodities[5].name,"lead");
+	strcpy(commodities[6].name,"menthaoil");
+	strcpy(commodities[7].name,"naturalgas");
+	strcpy(commodities[8].name,"nickel");
+	strcpy(commodities[9].name,"silver");
+	strcpy(commodities[10].name,"zinc");
 	consumer c;
 	int comm;
 	//int less4 = 1;
@@ -95,33 +106,34 @@ int main(){
 		strcpy(c.name,buffer[i].name);
 		c.currentPrice=buffer[i].currentPrice;
 		cout<<"line 94"<<endl;
-		if(strcmp(c.name, "aluminium"))
+		if(strcmp(c.name, "aluminium")==0)
 			comm = 0;
-		else if(strcmp(c.name, "copper"))
+		else if(strcmp(c.name, "copper")==0)
 			comm = 1;
-		else if(strcmp(c.name, "cotton"))
+		else if(strcmp(c.name, "cotton")==0)
 			comm = 2;
-		else if(strcmp(c.name, "crudeoil"))
+		else if(strcmp(c.name, "crudeoil")==0)
 			comm = 3;
-		else if(strcmp(c.name, "gold"))
+		else if(strcmp(c.name, "gold")==0)
 			comm = 4;
-		else if(strcmp(c.name, "lead"))
+		else if(strcmp(c.name, "lead")==0)
 			comm = 5;
-		else if(strcmp(c.name, "menthaoil"))
+		else if(strcmp(c.name, "menthaoil")==0)
 			comm = 6;
-		else if(strcmp(c.name, "naturalgas"))
+		else if(strcmp(c.name, "naturalgas")==0)
 			comm = 7;
-		else if(strcmp(c.name, "nickel"))
+		else if(strcmp(c.name, "nickel")==0)
 			comm = 8;
-		else if(strcmp(c.name, "silver"))
+		else if(strcmp(c.name, "silver")==0)
 			comm = 9;
-		else if(strcmp(c.name, "zinc"))
+		else if(strcmp(c.name, "zinc")==0)
 			comm = 10;
 		if(commodities[comm].prevPrices.size()==4){
 			commodities[comm].prevPrices.pop();
 		}
 		cout<<"line 98"<<endl;
-		commodities[comm] = c;
+		strcpy(commodities[comm].name, c.name);
+		commodities[comm].currentPrice = c.currentPrice;
 		cout<<"line 100"<<endl;
 		commodities[comm].prevPrices.push(c.currentPrice);
 		queue<double> temp = commodities[comm].prevPrices;
@@ -157,6 +169,7 @@ int main(){
 		// 	less4 = 0;
 		cout<<"size"<<commodities[comm].prevPrices.size()<<endl;
 		if(commodities[comm].prevPrices.size() == 4){
+			commodities[comm].avgPrice = 0;
 			cout<<"line 130"<<endl;
 			queue<double> temp = commodities[comm].prevPrices;
 			while (!temp.empty()) {
@@ -164,7 +177,7 @@ int main(){
 				//cout << temp.front()<<" "<<endl;
 				temp.pop();
 			}
-		commodities[comm].avgPrice /= (comm + 1);
+		commodities[comm].avgPrice /= 4;
 		cout<<"line 135"<<endl;
 		}
 		/*
@@ -187,13 +200,16 @@ int main(){
 
 		cout<<"+-------------------------------------+"<<endl;
 		cout<<"| Currency | Price | AvgPrice |"<<endl;
+		//cout<<setw(7) << "" << "Currency";
 		for(int k=0; k<11; k++){
 			cout<<"+-------------------------------------+"<<endl;
 			cout<<"| "<<commodities[k].name;
+			cout<<"↑↓";
 			printf("|%7.2lf %c ", commodities[k].currentPrice, 216);
 			printf("|%7.2lf|\n",commodities[k].avgPrice);
-			cout<<"+-------------------------------------+"<<endl;
+			
 		}
+		cout<<"+-------------------------------------+"<<endl;
 		
 	  
 
