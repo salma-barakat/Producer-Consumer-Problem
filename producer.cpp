@@ -34,19 +34,6 @@ int intervalsec,r,N;
 double mean,deviation,pricee;
 char name[10];
 struct timespec ts;
-time_t ti;
-struct tm *tinfo;
-int calc_nano(){
-		ti=time(0);
-		tinfo=localtime(&ti);
-		clock_gettime(CLOCK_REALTIME,&ts);
-		//stringstream ss;
-		//ss << ts.tv_nsec;
-		//string inp=ss.str();
-		//string nano=inp.substr(3,inp.length());
-		//return stoi(nano)/1000;
-		return ts.tv_nsec;
-}
 int main(int argc,char *argv[]){
 	strcpy(name,argv[1]);
 	mean=stod(argv[2]);
@@ -61,11 +48,17 @@ int main(int argc,char *argv[]){
 	key_t key1=ftok("test",11);
 	key_t key2=ftok("test",12);
 	key_t key3=ftok("test",13);
-	int semid0=semget(key0,1,IPC_EXCL |0666); //s
-	int semid1=semget(key1,1,IPC_EXCL |0666); //n
-	int semid2=semget(key2,1,IPC_EXCL |0666); //e
-	int shmid =shmget(key3,N*sizeof(producer),0666|IPC_CREAT);
-	producer *buffer=(producer *)shmat(shmid,0,0);
+	int semid0=semget(key0,1,IPC_CREAT | IPC_EXCL |0666); //s
+	int semid1=semget(key1,1,IPC_CREAT | IPC_EXCL |0666); //n
+	int semid2=semget(key2,1,IPC_CREAT | IPC_EXCL |0666); //e
+	if(semid0>=0 and semid1>=0 and semid2>=0){
+	sem_val.val=1;
+	int x0=semctl(semid0,0,SETVAL,sem_val);
+	sem_val.val=0;
+	x0=semctl(semid1,0,SETVAL,sem_val);
+	sem_val.val=N;
+	x0=semctl(semid2,0,SETVAL,sem_val);
+	}else{
 	if(semid0==-1 and errno==EEXIST ){
 		semid0=semget(key0,1,0); 	
 	}
@@ -75,26 +68,30 @@ int main(int argc,char *argv[]){
 	if(semid2==-1 and errno==EEXIST ){
 		semid2=semget(key2,1,0); 	
 	}
+	}
+	int shmid =shmget(key3,N*sizeof(producer),0666 | IPC_CREAT);
+	producer *buffer=(producer *)shmat(shmid,0,0);
 	while(true){
 		pricee=distribution(generator);
 		 //generating a new value:
     		auto now = std::chrono::high_resolution_clock::now();
     		auto timee = std::chrono::system_clock::to_time_t(now);
     		auto tm = *std::localtime(&timee);
-		int nano=calc_nano();
-		cout <<"["<<put_time(&tm, "%m/%d/%Y %T.")<<nano<<"] "<<name<<": Generating a new value "<<pricee<<endl;
+		clock_gettime(CLOCK_REALTIME,&ts);
+		cout <<"["<<put_time(&tm, "%m/%d/%Y %T.")<<ts.tv_nsec<<"] "<<name<<": Generating a new value "<<pricee<<endl;
 		//sem_op -ve,block until enough resources -> wait
 		//sem_op +ve,realse resource-> signal
+		now = std::chrono::high_resolution_clock::now();
+    		timee = std::chrono::system_clock::to_time_t(now);
+    		tm = *std::localtime(&timee);
+		clock_gettime(CLOCK_REALTIME,&ts);
+		cout <<"["<<put_time(&tm, "%m/%d/%Y %T.")<<ts.tv_nsec<<"] "<<name<<": trying to get mutex on shared buffer "<<endl;
+		
 		sem_buf.sem_op=-1;	//wait for e -> number of empty cells
 		sem_buf.sem_num=0;
 		sem_buf.sem_flg=SEM_UNDO;
 		r= semop(semid2,&sem_buf,1);
 		
-		now = std::chrono::high_resolution_clock::now();
-    		timee = std::chrono::system_clock::to_time_t(now);
-    		tm = *std::localtime(&timee);
-		nano=calc_nano();
-		cout <<"["<<put_time(&tm, "%m/%d/%Y %T.")<<nano<<"] "<<name<<": trying to get mutex on shared buffer "<<endl;
 		
 		sem_buf.sem_op=-1;	//wait for s
 		sem_buf.sem_num=0;
@@ -104,14 +101,11 @@ int main(int argc,char *argv[]){
 		now = std::chrono::high_resolution_clock::now();
     		timee = std::chrono::system_clock::to_time_t(now);
     		tm = *std::localtime(&timee);
-		nano=calc_nano();
-		cout <<"["<<put_time(&tm, "%m/%d/%Y %T.")<<nano<<"] "<<name<<": placing "<<pricee<<" on shared buffer"<<endl;
+		clock_gettime(CLOCK_REALTIME,&ts);
+		cout <<"["<<put_time(&tm, "%m/%d/%Y %T.")<<ts.tv_nsec<<"] "<<name<<": placing "<<pricee<<" on shared buffer"<<endl;
 		
 		strcpy(buffer[buffer->index].name,name);
 		buffer[buffer->index].price=pricee;
-		//cout<<buffer[buffer->index].name<<endl;
-		//cout<<buffer[buffer->index].price<<endl;
-		//cout<<buffer->index<<endl;
 		buffer->index=(buffer->index+1)%N;
 		//...
 		sem_buf.sem_op=1;	//signal for s
@@ -126,10 +120,10 @@ int main(int argc,char *argv[]){
 		now = std::chrono::high_resolution_clock::now();
     		timee = std::chrono::system_clock::to_time_t(now);
     		tm = *std::localtime(&timee);
-		nano=calc_nano();
-		cout <<"["<<put_time(&tm, "%m/%d/%Y %T.")<<nano<<"] "<<name<<": sleeping for "<<intervalsec<<"ms"<<endl;
-		
+		clock_gettime(CLOCK_REALTIME,&ts);
+		cout <<"["<<put_time(&tm, "%m/%d/%Y %T.")<<ts.tv_nsec<<"] "<<name<<": sleeping for "<<intervalsec<<"ms"<<endl;
 		sleep(intervalsec/1000);
+		cout<<"------------------------------"<<endl;
 	}
 	return 0;
 }
