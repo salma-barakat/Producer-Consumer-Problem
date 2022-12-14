@@ -3,4 +3,5 @@ all:
 	g++ -o consumer consumer.cpp
 
 clean:
+	ipcrm -a
 	rm -f producer consumer *.o
