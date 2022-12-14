@@ -19,10 +19,11 @@
 using namespace std; 
 struct consumer{
 	char name[10];//1 byte
-	double currentPrice;//8 byte
+	double currentPrice = 0;//8 byte
 	int index;//4yte	
 	double avgPrice = 0; //8 byte 
 	queue<double> prevPrices;
+	double prevOne = 0;
 };
 union semun{
 	int val;
@@ -199,19 +200,40 @@ int main(){
 		cout<<"success"<<endl;
 
 		cout<<"+-------------------------------------+"<<endl;
+		printf("\e[1;1H\e[2J");
 		cout<<"| Currency | Price | AvgPrice |"<<endl;
 		//cout<<setw(7) << "" << "Currency";
 		for(int k=0; k<11; k++){
 			cout<<"+-------------------------------------+"<<endl;
-			cout<<"| "<<commodities[k].name;
-			cout<<"↑↓";
-			printf("|%7.2lf %c ", commodities[k].currentPrice, 216);
+			cout<<"| "<<commodities[k].name<<" |";
+			//cout<<"↑↓";
+			  
+			if(commodities[k].currentPrice>commodities[k].prevOne){
+				printf("\033[1;32m");
+				printf("%7.2lf↑", commodities[k].currentPrice);
+				printf("\033[0m");
+			}
+				
+			else if(commodities[k].currentPrice<commodities[k].prevOne){
+				printf("\033[1;31m");
+				printf("%7.2lf↓", commodities[k].currentPrice);
+				printf("\033[0m");
+			}
+				
+			else{
+				printf("\033[1;34m");
+				printf("%7.2lf", commodities[k].currentPrice);
+				printf("\033[0m");
+			}
+				
+			//printf("|%7.2lf ", commodities[k].currentPrice);
 			printf("|%7.2lf|\n",commodities[k].avgPrice);
+			
 			
 		}
 		cout<<"+-------------------------------------+"<<endl;
 		
-	  
+	  commodities[comm].prevOne = commodities[comm].currentPrice;
 
 		 
 		
