@@ -17,12 +17,17 @@
 #include <chrono>
 #include <iomanip>
 #include <time.h>
+#include <queue>
 using namespace std; 
 
 struct producer{
-	char name[10];
-	double price;
-	int index=0;	 
+	char name[10];//1 byte
+	double currentPrice = 0;//8 byte
+	int index;//4yte	
+	double avgPrice = 0; //8 byte 
+	queue<double> prevPrices;
+	double prevOne = 0;	 
+	double prevAvg = 0;
 };
 union semun{
 	int val;
@@ -105,7 +110,7 @@ int main(int argc,char *argv[]){
 		cout <<"["<<put_time(&tm, "%m/%d/%Y %T.")<<ts.tv_nsec<<"] "<<name<<": placing "<<pricee<<" on shared buffer"<<endl;
 		
 		strcpy(buffer[buffer->index].name,name);
-		buffer[buffer->index].price=pricee;
+		buffer[buffer->index].currentPrice=pricee;
 		buffer->index=(buffer->index+1)%N;
 		//...
 		sem_buf.sem_op=1;	//signal for s

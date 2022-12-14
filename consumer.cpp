@@ -24,6 +24,7 @@ struct consumer{
 	double avgPrice = 0; //8 byte 
 	queue<double> prevPrices;
 	double prevOne = 0;
+	double prevAvg = 0;
 };
 union semun{
 	int val;
@@ -43,8 +44,9 @@ union semun{
 char name1[10];
 double price;
 #define Size 5
-int r,i=0;
-int main(){
+int r,i=0, N;
+int main(int argc, char *argv[]){
+	N=stoi(argv[1]);
 	struct sembuf sem_buf;
 	union semun sem_val;
 	//priority_queue<struct process,vector <process>,compare> temp3;
@@ -73,7 +75,7 @@ int main(){
 		semid2=semget(key2,1,0); 	
 	}
 	}
-	int shmid =shmget(key3,Size,0666 | IPC_CREAT);
+	int shmid =shmget(key3,N*sizeof(consumer),0666 | IPC_CREAT);
 	consumer *buffer=(consumer *)shmat(shmid,0,0);
 	//vector<struct consumer> commodities;
 	struct consumer commodities[11];
@@ -81,17 +83,20 @@ int main(){
 	strcpy(commodities[1].name,"copper");
 	strcpy(commodities[2].name,"cotton");
 	strcpy(commodities[3].name,"crudeoil");
-	strcpy(commodities[4].name,"gold");
-	strcpy(commodities[5].name,"lead");
+	strcpy(commodities[4].name,"gold	");
+	strcpy(commodities[5].name,"lead	");
 	strcpy(commodities[6].name,"menthaoil");
 	strcpy(commodities[7].name,"naturalgas");
 	strcpy(commodities[8].name,"nickel");
 	strcpy(commodities[9].name,"silver");
-	strcpy(commodities[10].name,"zinc");
+	strcpy(commodities[10].name,"zinc	");
+	for(int i=0; i<11; i++){
+		for(int j=0; j<5; j++){
+			commodities[i].prevPrices.push(0);
+		}
+	}
 	consumer c;
 	int comm;
-	//int less4 = 1;
-	char *arrow;
 	//buffer[size];
 	while(true){
 		sem_buf.sem_op=-1;	//wait for n 
@@ -103,10 +108,8 @@ int main(){
 		sem_buf.sem_flg=SEM_UNDO;
 		r=semop(semid0,&sem_buf,1);
 		//cs..
-		cout<<"line 91"<<endl;
 		strcpy(c.name,buffer[i].name);
 		c.currentPrice=buffer[i].currentPrice;
-		cout<<"line 94"<<endl;
 		if(strcmp(c.name, "aluminium")==0)
 			comm = 0;
 		else if(strcmp(c.name, "copper")==0)
@@ -129,26 +132,16 @@ int main(){
 			comm = 9;
 		else if(strcmp(c.name, "zinc")==0)
 			comm = 10;
-		if(commodities[comm].prevPrices.size()==4){
+		if(commodities[comm].prevPrices.size()==5){
 			commodities[comm].prevPrices.pop();
 		}
-		cout<<"line 98"<<endl;
-		strcpy(commodities[comm].name, c.name);
+		//strcpy(commodities[comm].name, c.name);
 		commodities[comm].currentPrice = c.currentPrice;
-		cout<<"line 100"<<endl;
 		commodities[comm].prevPrices.push(c.currentPrice);
-		queue<double> temp = commodities[comm].prevPrices;
-		while (!temp.empty()) {
-			cout << temp.front()<<" "<<endl;
-			temp.pop();
-		}
-		cout<<"line 102	"<<endl;
-		i=(i+1)%Size;
+		i=(i+1)%N;
 		//cout<<buffer->index<<endl;
 		//buffer->index=(buffer->index+1)%size;
-		cout<<commodities[comm].name<<" "<<commodities[comm].currentPrice<<endl;
-		cout<<"line 107"<<endl;
-		//al++;
+		//cout<<commodities[comm].name<<" "<<commodities[comm].currentPrice<<endl;
 
 	 
 		//..
@@ -160,80 +153,67 @@ int main(){
 		sem_buf.sem_num=0;
 		sem_buf.sem_flg=SEM_UNDO;
 		r=semop(semid2,&sem_buf,1);
-
-		// if(comm == 4){
-		// 	cout<<"line 122"<<endl;
-		// 	commodities.erase(commodities.begin());
-		// 	comm --;
-		// }
-		// if(al == 3)
-		// 	less4 = 0;
-		cout<<"size"<<commodities[comm].prevPrices.size()<<endl;
-		if(commodities[comm].prevPrices.size() == 4){
-			commodities[comm].avgPrice = 0;
-			cout<<"line 130"<<endl;
-			queue<double> temp = commodities[comm].prevPrices;
-			while (!temp.empty()) {
-				commodities[comm].avgPrice += temp.front();
-				//cout << temp.front()<<" "<<endl;
-				temp.pop();
-			}
-		commodities[comm].avgPrice /= 4;
-		cout<<"line 135"<<endl;
+		sleep(3);
+		commodities[comm].avgPrice = 0;
+		queue<double> temp = commodities[comm].prevPrices;
+		while (!temp.empty()) {
+			commodities[comm].avgPrice += temp.front();
+			temp.pop();
 		}
-		/*
-		if(al != 0){
-			if(commodities[al].price > commodities[al-1].price)
-			{
-				cout<<"before"<<endl;
-				printf("%c",24);
-				strcpy(arrow, " ↑ ");
-				cout<<"after"<<endl;
-			}
-				
-			// else if(commodities[al].price < commodities[al-1].price)
-			// 	strcpy(arrow," ↓ ");
-			// else
-			// 	strcpy(arrow, " - ");
-		}*/
-		
-		cout<<"success"<<endl;
-
-		cout<<"+-------------------------------------+"<<endl;
+		commodities[comm].avgPrice /= 5;
 		printf("\e[1;1H\e[2J");
-		cout<<"| Currency | Price | AvgPrice |"<<endl;
+		cout<<"+-------------------------------------+"<<endl;
+		cout<<"| Currency	|  Price   | AvgPrice |"<<endl;
 		//cout<<setw(7) << "" << "Currency";
 		for(int k=0; k<11; k++){
 			cout<<"+-------------------------------------+"<<endl;
-			cout<<"| "<<commodities[k].name<<" |";
+			cout<<"| "<<commodities[k].name<<"	|";
 			//cout<<"↑↓";
 			  
 			if(commodities[k].currentPrice>commodities[k].prevOne){
 				printf("\033[1;32m");
-				printf("%7.2lf↑", commodities[k].currentPrice);
-				printf("\033[0m");
+				printf("%7.2lf↑  ", commodities[k].currentPrice);
+				printf("\033[0m|");
 			}
 				
 			else if(commodities[k].currentPrice<commodities[k].prevOne){
 				printf("\033[1;31m");
-				printf("%7.2lf↓", commodities[k].currentPrice);
-				printf("\033[0m");
+				printf("%7.2lf↓  ", commodities[k].currentPrice);
+				printf("\033[0m|");
 			}
 				
 			else{
 				printf("\033[1;34m");
-				printf("%7.2lf", commodities[k].currentPrice);
-				printf("\033[0m");
+				printf("%7.2lf-  ", commodities[k].currentPrice);
+				printf("\033[0m|");
+			}
+
+			if(commodities[k].avgPrice>commodities[k].prevAvg){
+				printf("\033[1;32m");
+				printf("%7.2lf↑  ", commodities[k].avgPrice);
+				printf("\033[0m|");
 			}
 				
-			//printf("|%7.2lf ", commodities[k].currentPrice);
-			printf("|%7.2lf|\n",commodities[k].avgPrice);
+			else if(commodities[k].avgPrice<commodities[k].prevAvg){
+				printf("\033[1;31m");
+				printf("%7.2lf↓  ", commodities[k].avgPrice);
+				printf("\033[0m|");
+			}
+				
+			else{
+				printf("\033[1;34m");
+				printf("%7.2lf-  ", commodities[k].avgPrice);
+				printf("\033[0m|");
+			}
+			cout<<endl;
+				
 			
 			
 		}
 		cout<<"+-------------------------------------+"<<endl;
 		
 	  commodities[comm].prevOne = commodities[comm].currentPrice;
+	  commodities[comm].prevAvg = commodities[comm].avgPrice;
 
 		 
 		
