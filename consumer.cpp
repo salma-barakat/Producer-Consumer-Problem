@@ -32,15 +32,7 @@ union semun{
 	unsigned short int *array;
 	struct seminfo *__buf;
 };
-/*struct compare{
-	bool operator()(process const& p1,process const& p2){
-	
-	if(p1.remainingtime==p2.remainingtime)
-	return  p1.arrivaltime > p2.arrivaltime;
-	else
-	return p1.remainingtime>p2.remainingtime;
-	} 
-};*/
+
 char name1[10];
 double price;
 #define Size 5
@@ -49,7 +41,6 @@ int main(int argc, char *argv[]){
 	N=stoi(argv[1]);
 	struct sembuf sem_buf;
 	union semun sem_val;
-	//priority_queue<struct process,vector <process>,compare> temp3;
 	key_t key0=ftok("test",10);
 	key_t key1=ftok("test",11);
 	key_t key2=ftok("test",12);
@@ -77,19 +68,18 @@ int main(int argc, char *argv[]){
 	}
 	int shmid =shmget(key3,N*sizeof(consumer),0666 | IPC_CREAT);
 	consumer *buffer=(consumer *)shmat(shmid,0,0);
-	//vector<struct consumer> commodities;
 	struct consumer commodities[11];
-	strcpy(commodities[0].name,"aluminium");
-	strcpy(commodities[1].name,"copper");
-	strcpy(commodities[2].name,"cotton");
-	strcpy(commodities[3].name,"crudeoil");
-	strcpy(commodities[4].name,"gold	");
-	strcpy(commodities[5].name,"lead	");
-	strcpy(commodities[6].name,"menthaoil");
-	strcpy(commodities[7].name,"naturalgas");
-	strcpy(commodities[8].name,"nickel");
-	strcpy(commodities[9].name,"silver");
-	strcpy(commodities[10].name,"zinc	");
+	strcpy(commodities[0].name,"ALUMINIUM");
+	strcpy(commodities[1].name,"COPPER");
+	strcpy(commodities[2].name,"COTTON");
+	strcpy(commodities[3].name,"CRUDEOIL");
+	strcpy(commodities[4].name,"GOLD	");
+	strcpy(commodities[5].name,"LEAD	");
+	strcpy(commodities[6].name,"MENTHAOIL");
+	strcpy(commodities[7].name,"NATURALGAS");
+	strcpy(commodities[8].name,"NICKEL");
+	strcpy(commodities[9].name,"SILVER");
+	strcpy(commodities[10].name,"ZINC	");
 	for(int i=0; i<11; i++){
 		for(int j=0; j<5; j++){
 			commodities[i].prevPrices.push(0);
@@ -97,7 +87,6 @@ int main(int argc, char *argv[]){
 	}
 	consumer c;
 	int comm;
-	//buffer[size];
 	while(true){
 		sem_buf.sem_op=-1;	//wait for n 
 		sem_buf.sem_num=0;
@@ -110,38 +99,35 @@ int main(int argc, char *argv[]){
 		//cs..
 		strcpy(c.name,buffer[i].name);
 		c.currentPrice=buffer[i].currentPrice;
-		if(strcmp(c.name, "aluminium")==0)
+		if(strcasecmp(c.name, "ALUMINIUM")==0)
 			comm = 0;
-		else if(strcmp(c.name, "copper")==0)
+		else if(strcmp(c.name, "COPPER")==0)
 			comm = 1;
-		else if(strcmp(c.name, "cotton")==0)
+		else if(strcmp(c.name, "COTTON")==0)
 			comm = 2;
-		else if(strcmp(c.name, "crudeoil")==0)
+		else if(strcmp(c.name, "CRUDEOIL")==0)
 			comm = 3;
-		else if(strcmp(c.name, "gold")==0)
+		else if(strcmp(c.name, "GOLD")==0)
 			comm = 4;
-		else if(strcmp(c.name, "lead")==0)
+		else if(strcmp(c.name, "LEAD")==0)
 			comm = 5;
-		else if(strcmp(c.name, "menthaoil")==0)
+		else if(strcmp(c.name, "MENTHAOIL")==0)
 			comm = 6;
-		else if(strcmp(c.name, "naturalgas")==0)
+		else if(strcmp(c.name, "NATURALGAS")==0)
 			comm = 7;
-		else if(strcmp(c.name, "nickel")==0)
+		else if(strcmp(c.name, "NICKEL")==0)
 			comm = 8;
-		else if(strcmp(c.name, "silver")==0)
+		else if(strcmp(c.name, "SILVER")==0)
 			comm = 9;
-		else if(strcmp(c.name, "zinc")==0)
+		else if(strcmp(c.name, "ZINC")==0)
 			comm = 10;
 		if(commodities[comm].prevPrices.size()==5){
 			commodities[comm].prevPrices.pop();
 		}
-		//strcpy(commodities[comm].name, c.name);
+
 		commodities[comm].currentPrice = c.currentPrice;
 		commodities[comm].prevPrices.push(c.currentPrice);
 		i=(i+1)%N;
-		//cout<<buffer->index<<endl;
-		//buffer->index=(buffer->index+1)%size;
-		//cout<<commodities[comm].name<<" "<<commodities[comm].currentPrice<<endl;
 
 	 
 		//..
@@ -164,11 +150,11 @@ int main(int argc, char *argv[]){
 		printf("\e[1;1H\e[2J");
 		cout<<"+-------------------------------------+"<<endl;
 		cout<<"| Currency	|  Price   | AvgPrice |"<<endl;
-		//cout<<setw(7) << "" << "Currency";
+		cout<<"+-------------------------------------+"<<endl;
+
 		for(int k=0; k<11; k++){
-			cout<<"+-------------------------------------+"<<endl;
 			cout<<"| "<<commodities[k].name<<"	|";
-			//cout<<"↑↓";
+
 			  
 			if(commodities[k].currentPrice>commodities[k].prevOne){
 				printf("\033[1;32m");
