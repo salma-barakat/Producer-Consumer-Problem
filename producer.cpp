@@ -49,10 +49,10 @@ int main(int argc,char *argv[]){
 	normal_distribution<double>distribution(mean,pow(deviation,2));
 	struct sembuf sem_buf;
 	union semun sem_val;
-	key_t key0=ftok("test",10);
-	key_t key1=ftok("test",11);
-	key_t key2=ftok("test",12);
-	key_t key3=ftok("test",13);
+	key_t key0=10;
+	key_t key1=11;
+	key_t key2=12;
+	key_t key3=13;
 	int semid0=semget(key0,1,IPC_CREAT | IPC_EXCL |0666); //s
 	int semid1=semget(key1,1,IPC_CREAT | IPC_EXCL |0666); //n
 	int semid2=semget(key2,1,IPC_CREAT | IPC_EXCL |0666); //e
