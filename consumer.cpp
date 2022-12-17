@@ -124,8 +124,9 @@ int main(int argc, char *argv[]){
 		if(commodities[comm].prevPrices.size()==5){
 			commodities[comm].prevPrices.pop();
 		}
-
+		commodities[comm].prevOne = commodities[comm].currentPrice;
 		commodities[comm].currentPrice = c.currentPrice;
+		commodities[comm].prevAvg = commodities[comm].avgPrice;
 		commodities[comm].prevPrices.push(c.currentPrice);
 		i=(i+1)%N;
 
@@ -197,9 +198,6 @@ int main(int argc, char *argv[]){
 			
 		}
 		cout<<"+-------------------------------------+"<<endl;
-		
-	  commodities[comm].prevOne = commodities[comm].currentPrice;
-	  commodities[comm].prevAvg = commodities[comm].avgPrice;
 
 		 
 		
